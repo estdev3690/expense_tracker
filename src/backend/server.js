@@ -21,7 +21,9 @@ app.use(express.json());
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
-
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
 app.post('/api/register', async (req, res) => {
     try {
         const { fullName, email, password } = req.body;
