@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    // Add new state for budget
     const [budget, setBudget] = useState({
         amount: 0,
         month: new Date().toISOString().slice(0, 7)
@@ -24,9 +23,8 @@ const Dashboard = () => {
         expense: ['Groceries', 'Rent', 'Utilities', 'Entertainment', 'Transport']
     };
 
- 
-
-    const fetchBudget = async () => {
+    // Define functions before useEffect
+    const fetchBudget = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/budget', {
@@ -43,29 +41,8 @@ const Dashboard = () => {
         } catch (error) {
             console.error('Error fetching budget:', error);
         }
-    };
-    const handleBudgetUpdate = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/budget', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(budget)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update budget');
-            }
-
-            await fetchSummary();
-        } catch (error) {
-            console.error('Error updating budget:', error);
-        }
-    };
-    const fetchTransactions = async () => {
+    }, []);
+    const fetchTransactions = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/transactions', {
@@ -84,39 +61,8 @@ const Dashboard = () => {
             console.error('Error fetching transactions:', error);
             setTransactions([]);
         }
-    };
-    // Add these state declarations near the top with other state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [filters, setFilters] = useState({
-        category: '',
-        startDate: '',
-        endDate: '',
-        minAmount: '',
-        maxAmount: ''
-    });
-    const transactionsPerPage = 5;
-    
-    // Add this filtering logic before the return statement
-    const filteredTransactions = transactions.filter(transaction => {
-        const matchesCategory = !filters.category || transaction.category === filters.category;
-        const matchesDate = (
-            (!filters.startDate || new Date(transaction.date) >= new Date(filters.startDate)) &&
-            (!filters.endDate || new Date(transaction.date) <= new Date(filters.endDate))
-        );
-        const matchesAmount = (
-            (!filters.minAmount || transaction.amount >= parseFloat(filters.minAmount)) &&
-            (!filters.maxAmount || transaction.amount <= parseFloat(filters.maxAmount))
-        );
-        return matchesCategory && matchesDate && matchesAmount;
-    });
-    
-    // Add pagination calculations
-    const indexOfLastTransaction = currentPage * transactionsPerPage;
-    const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
-    const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
-
-
-    const fetchSummary = async () => {
+    }, []);
+    const fetchSummary = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -132,12 +78,9 @@ const Dashboard = () => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-                // Removed credentials: 'include'
             });
 
             const data = await response.json();
-            
-            // Ensure we have all required fields
             const income = parseFloat(data.totalIncome || data.income || 0);
             const expense = parseFloat(data.totalExpense || data.expense || 0);
             const balance = income - expense;
@@ -154,7 +97,17 @@ const Dashboard = () => {
             });
             setSummary({ income: '0.00', expense: '0.00', balance: '0.00' });
         }
-    };
+    }, [navigate]);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/');
+            return;
+        }
+        fetchTransactions();
+        fetchSummary();
+        fetchBudget();
+    }, [fetchTransactions, fetchSummary, fetchBudget, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -196,23 +149,73 @@ const Dashboard = () => {
         localStorage.removeItem('userId');
         navigate('/');
     };
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/');
-            return;
-        }
-        fetchTransactions();
-        fetchSummary();
-        fetchBudget();
-    }, []);
+
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
-    // Update the pieData definition
     const pieData = [
         { name: 'Income', value: parseFloat(summary.income) },
         { name: 'Expenses', value: parseFloat(summary.expense) }
     ].filter(item => item.value > 0);
+
+
+
+
+
+
+    const handleBudgetUpdate = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/budget', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(budget)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update budget');
+            }
+
+            await fetchSummary();
+        } catch (error) {
+            console.error('Error updating budget:', error);
+        }
+    };
+
+    // Add these state declarations near the top with other state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [filters, setFilters] = useState({
+        category: '',
+        startDate: '',
+        endDate: '',
+        minAmount: '',
+        maxAmount: ''
+    });
+    const transactionsPerPage = 5;
+    
+    // Add this filtering logic before the return statement
+    const filteredTransactions = transactions.filter(transaction => {
+        const matchesCategory = !filters.category || transaction.category === filters.category;
+        const matchesDate = (
+            (!filters.startDate || new Date(transaction.date) >= new Date(filters.startDate)) &&
+            (!filters.endDate || new Date(transaction.date) <= new Date(filters.endDate))
+        );
+        const matchesAmount = (
+            (!filters.minAmount || transaction.amount >= parseFloat(filters.minAmount)) &&
+            (!filters.maxAmount || transaction.amount <= parseFloat(filters.maxAmount))
+        );
+        return matchesCategory && matchesDate && matchesAmount;
+    });
+    
+    // Add pagination calculations
+    const indexOfLastTransaction = currentPage * transactionsPerPage;
+    const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+    const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
+
+
+    
 
     // Update the chart section in the return statement
     <div className="dashboard-chart">
