@@ -29,9 +29,10 @@ const Login = () => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
-
+    
         try {
             const endpoint = isSignUp ? '/api/register' : '/api/login';
+            // Update the URL to point to your backend
             const response = await fetch(`https://expense-tracker-4mo8.onrender.com${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -41,15 +42,17 @@ const Login = () => {
                     email: formData.email,
                     password: formData.password
                 }),
-                mode: 'cors'
+                mode: 'cors'  // Ensure CORS is handled correctly on the backend
             });
-
+    
+            // Handle the response data
             const data = await response.json();
-
+    
             if (!response.ok) {
+                // Throw an error if the response is not ok
                 throw new Error(data.message || 'An error occurred');
             }
-
+    
             if (isSignUp) {
                 setSuccessMessage('Registration successful! Please sign in.');
                 setTimeout(() => {
@@ -58,16 +61,19 @@ const Login = () => {
                     setSuccessMessage('');
                 }, 2000);
             } else {
-                // Store token in localStorage
+                // Store token and user ID in localStorage
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.userId);
                 // Redirect to dashboard
                 window.location.href = '/dashboard';
             }
         } catch (err) {
+            // Display the error message in the UI
             setError(err.message);
         }
     };
+    
+    
 
     return (
         <div className="login-container">
