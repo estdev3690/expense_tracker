@@ -2,7 +2,7 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     try {
         // Changed from /api/register to /api/users/register
-        const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/users/register', {
+        const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
