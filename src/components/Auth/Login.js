@@ -1,7 +1,6 @@
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        // Changed from /api/login to /api/users/login
         const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/users/login', {
             method: 'POST',
             headers: {
@@ -9,7 +8,7 @@ const handleSubmit = async (e) => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify(credentials),
-            mode: 'cors' 
+            credentials: 'include'  // Important for cookies/sessions
         });
 
         if (!response.ok) {
