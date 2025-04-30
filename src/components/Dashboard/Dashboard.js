@@ -24,16 +24,7 @@ const Dashboard = () => {
         expense: ['Groceries', 'Rent', 'Utilities', 'Entertainment', 'Transport']
     };
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/');
-            return;
-        }
-        fetchTransactions();
-        fetchSummary();
-        fetchBudget();
-    }, []);
+ 
 
     const fetchBudget = async () => {
         try {
@@ -205,7 +196,16 @@ const Dashboard = () => {
         localStorage.removeItem('userId');
         navigate('/');
     };
-
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/');
+            return;
+        }
+        fetchTransactions();
+        fetchSummary();
+        fetchBudget();
+    }, []);
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
     // Update the pieData definition
