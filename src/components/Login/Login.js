@@ -32,7 +32,7 @@ const Login = () => {
 
         try {
             const endpoint = isSignUp ? '/api/register' : '/api/login';
-            const response = await fetch(`http://localhost:5000${endpoint}`, {
+            const response = await fetch(`https://expense-tracker-4mo8.onrender.com${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,6 +41,7 @@ const Login = () => {
                     email: formData.email,
                     password: formData.password
                 }),
+                mode: 'cors'
             });
 
             const data = await response.json();
