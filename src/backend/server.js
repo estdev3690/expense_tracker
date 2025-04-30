@@ -8,13 +8,16 @@ require('dotenv').config();
 const app = express();
 const User = require('./models/User');
 const Transaction = require('./models/Transaction');
-
+const allowedOrigins = [
+    'https://expense-tracker-01-tau.vercel.app',
+    'http://localhost:3000' // For local development
+];
 // Update CORS configuration
 app.use(cors({
-    origin: 'https://expense-tracker-4mo8.onrender.com',
+    origin: allowedOrigins,
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
