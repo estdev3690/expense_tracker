@@ -123,10 +123,7 @@ const Dashboard = () => {
     const indexOfLastTransaction = currentPage * transactionsPerPage;
     const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
     const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
-    const budgetComparisonData = [
-        { name: 'Budget', value: parseFloat(budget.amount) || 0 },
-        { name: 'Actual', value: parseFloat(summary.expense) || 0 }
-    ];
+
 
     const fetchSummary = async () => {
         try {
