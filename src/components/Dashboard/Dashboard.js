@@ -33,7 +33,7 @@ const Dashboard = () => {
         fetchTransactions();
         fetchSummary();
         fetchBudget();
-    }, []);
+    }, [navigate, fetchTransactions, fetchSummary, fetchBudget]); // Add all dependencies here
 
     const fetchBudget = async () => {
         try {
