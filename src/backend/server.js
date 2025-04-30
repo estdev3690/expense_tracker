@@ -13,7 +13,8 @@ const Transaction = require('./models/Transaction');
 app.use(cors({
     origin: 'https://expense-tracker-4mo8.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true
 }));
 app.use(express.json());
 
