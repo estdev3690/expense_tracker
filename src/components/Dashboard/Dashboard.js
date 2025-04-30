@@ -27,7 +27,7 @@ const Dashboard = () => {
     const fetchBudget = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/budget', {
+            const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/budget', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
@@ -45,7 +45,7 @@ const Dashboard = () => {
     const fetchTransactions = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/transactions', {
+            const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/transactions', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
@@ -71,7 +71,7 @@ const Dashboard = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:5000/api/transactions/summary', {
+            const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/transactions/summary', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -113,7 +113,7 @@ const Dashboard = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/transactions', {
+            const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/transactions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ const Dashboard = () => {
     const handleBudgetUpdate = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/budget', {
+            const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/budget', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
