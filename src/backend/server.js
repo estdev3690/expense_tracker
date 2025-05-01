@@ -421,6 +421,26 @@ app.get('/api/transactions/summary', authenticateToken, async (req, res) => {
     }
 });
 
+// Add this route with your other transaction routes
+app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
+    try {
+        const transaction = await Transaction.findOne({
+            _id: req.params.id,
+            userId: req.user.userId
+        });
+
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaction not found' });
+        }
+
+        await Transaction.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Transaction deleted successfully' });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ message: 'Error deleting transaction' });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

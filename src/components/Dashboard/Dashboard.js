@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import './Dashboard.css';
@@ -136,7 +136,7 @@ const Dashboard = () => {
                 amount: '',
                 description: ''
             });
-            
+
             await fetchTransactions();
             await fetchSummary();
         } catch (error) {
@@ -183,7 +183,32 @@ const Dashboard = () => {
             console.error('Error updating budget:', error);
         }
     };
-
+    const handleDeleteTransaction = async (transactionId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`https://expense-tracker-4mo8.onrender.com/api/transactions/${transactionId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete transaction');
+            }
+    
+            // Only refresh if delete was successful
+            await fetchTransactions();
+            await fetchSummary();
+        } catch (error) {
+            console.error('Error deleting transaction:', error);
+            // Optionally add user notification here
+            alert('Failed to delete transaction. Please try again.');
+        }
+    };
     // Add these state declarations near the top with other state
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({
@@ -194,7 +219,7 @@ const Dashboard = () => {
         maxAmount: ''
     });
     const transactionsPerPage = 5;
-    
+
     // Add this filtering logic before the return statement
     const filteredTransactions = transactions.filter(transaction => {
         const matchesCategory = !filters.category || transaction.category === filters.category;
@@ -208,14 +233,14 @@ const Dashboard = () => {
         );
         return matchesCategory && matchesDate && matchesAmount;
     });
-    
+
     // Add pagination calculations
     const indexOfLastTransaction = currentPage * transactionsPerPage;
     const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
     const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
 
 
-    
+
 
     // Update the chart section in the return statement
     <div className="dashboard-chart">
@@ -233,14 +258,14 @@ const Dashboard = () => {
                     label={({ name, value }) => `${name}: $${value.toLocaleString()}`}
                 >
                     {pieData.map((entry, index) => (
-                        <Cell 
-                            key={`cell-${index}`} 
-                            fill={entry.name === 'Income' ? '#00C49F' : '#FF8042'} 
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={entry.name === 'Income' ? '#00C49F' : '#FF8042'}
                         />
                     ))}
                 </Pie>
-                <Legend 
-                    verticalAlign="bottom" 
+                <Legend
+                    verticalAlign="bottom"
                     height={36}
                     formatter={(value, entry) => `${value}: $${entry.payload.value.toLocaleString()}`}
                 />
@@ -262,21 +287,21 @@ const Dashboard = () => {
                     <input
                         type="number"
                         value={budget.amount}
-                        onChange={(e) => setBudget({...budget, amount: e.target.value})}
+                        onChange={(e) => setBudget({ ...budget, amount: e.target.value })}
                         placeholder="Set monthly budget"
                     />
                     <input
                         type="month"
                         value={budget.month}
-                        onChange={(e) => setBudget({...budget, month: e.target.value})}
+                        onChange={(e) => setBudget({ ...budget, month: e.target.value })}
                     />
                     <button onClick={handleBudgetUpdate}>Set Budget</button>
                 </div>
                 <div className="budget-progress">
                     <h3>Budget Progress</h3>
                     <div className="progress-bar">
-                        <div 
-                            className="progress" 
+                        <div
+                            className="progress"
                             style={{
                                 width: `${Math.min((summary.expense / budget.amount) * 100, 100)}%`,
                                 backgroundColor: summary.expense > budget.amount ? '#ff4444' : '#4CAF50'
@@ -380,39 +405,39 @@ const Dashboard = () => {
 
             {/* Add filter controls before transactions list */}
             <div className="transaction-filters">
-                <select 
+                <select
                     value={filters.category}
-                    onChange={(e) => setFilters({...filters, category: e.target.value})}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
                 >
                     <option value="">All Categories</option>
                     {[...categories.income, ...categories.expense].map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
                     ))}
                 </select>
-                <input 
-                    type="date" 
+                <input
+                    type="date"
                     value={filters.startDate}
-                    onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
                     placeholder="Start Date"
                 />
-                <input 
-                    type="date" 
+                <input
+                    type="date"
                     value={filters.endDate}
-                    onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                    onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
                     placeholder="End Date"
                 />
                 <div className="amount-filter">
-                    <input 
-                        type="number" 
+                    <input
+                        type="number"
                         value={filters.minAmount}
-                        onChange={(e) => setFilters({...filters, minAmount: e.target.value})}
+                        onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
                         placeholder="Min Amount"
                     />
                     <span>to</span>
-                    <input 
-                        type="number" 
+                    <input
+                        type="number"
                         value={filters.maxAmount}
-                        onChange={(e) => setFilters({...filters, maxAmount: e.target.value})}
+                        onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
                         placeholder="Max Amount"
                     />
                 </div>
@@ -427,24 +452,32 @@ const Dashboard = () => {
                                 <h4>{transaction.description}</h4>
                                 <p>{transaction.category}</p>
                             </div>
-                            <p className={`amount ${transaction.type}`}>
-                                {transaction.type === 'expense' ? '-' : '+'}${transaction.amount}
-                            </p>
+                            <div className="transaction-actions">
+                                <p className={`amount ${transaction.type}`}>
+                                    {transaction.type === 'expense' ? '-' : '+'}${transaction.amount}
+                                </p>
+                                <button
+                                    className="delete-btn"
+                                    onClick={() => handleDeleteTransaction(transaction._id)}
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
-                
+
                 {/* Add pagination controls */}
                 {filteredTransactions.length > transactionsPerPage && (
                     <div className="pagination">
-                        <button 
+                        <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                         >
                             Previous
                         </button>
-                        
-                        {Array.from({length: Math.ceil(filteredTransactions.length / transactionsPerPage)}, (_, i) => (
+
+                        {Array.from({ length: Math.ceil(filteredTransactions.length / transactionsPerPage) }, (_, i) => (
                             <button
                                 key={i + 1}
                                 onClick={() => setCurrentPage(i + 1)}
@@ -453,8 +486,8 @@ const Dashboard = () => {
                                 {i + 1}
                             </button>
                         ))}
-                        
-                        <button 
+
+                        <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTransactions.length / transactionsPerPage)))}
                             disabled={currentPage === Math.ceil(filteredTransactions.length / transactionsPerPage)}
                         >
