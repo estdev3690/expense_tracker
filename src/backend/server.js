@@ -421,7 +421,20 @@ app.get('/api/transactions/summary', authenticateToken, async (req, res) => {
     }
 });
 
-// Add this route with your other transaction routes
+// Add this route after your other routes
+app.get('/api/users/me', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ name: user.fullName });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Error fetching user profile' });
+    }
+});
+
 app.delete('/api/transactions/:id', authenticateToken, async (req, res) => {
     try {
         const transaction = await Transaction.findOne({

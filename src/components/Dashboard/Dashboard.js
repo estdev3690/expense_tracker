@@ -22,7 +22,34 @@ const Dashboard = () => {
         income: ['Salary', 'Freelance', 'Investments', 'Other'],
         expense: ['Groceries', 'Rent', 'Utilities', 'Entertainment', 'Transport']
     };
+    const [user, setUser] = useState({ name: '' });
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('https://expense-tracker-4mo8.onrender.com/api/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user data');
+                }
+
+                const data = await response.json();
+                setUser({ name: data.name || 'User' }); // Provide a fallback name
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                setUser({ name: 'User' }); // Set default name if fetch fails
+            }
+        };
+
+        fetchUserData();
+    }, []);
     // Define functions before useEffect
     const fetchBudget = useCallback(async () => {
         try {
@@ -194,12 +221,12 @@ const Dashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to delete transaction');
             }
-    
+
             // Only refresh if delete was successful
             await fetchTransactions();
             await fetchSummary();
@@ -243,261 +270,205 @@ const Dashboard = () => {
 
 
     // Update the chart section in the return statement
-    <div className="dashboard-chart">
-        <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-                <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    innerRadius={60}
-                    fill="#8884d8"
-                    label={({ name, value }) => `${name}: $${value.toLocaleString()}`}
-                >
-                    {pieData.map((entry, index) => (
-                        <Cell
-                            key={`cell-${index}`}
-                            fill={entry.name === 'Income' ? '#00C49F' : '#FF8042'}
-                        />
-                    ))}
-                </Pie>
-                <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    formatter={(value, entry) => `${value}: $${entry.payload.value.toLocaleString()}`}
-                />
-            </PieChart>
-        </ResponsiveContainer>
-    </div>
 
-    // Add budget section to the dashboard summary
     return (
         <div className="dashboard-container">
             <nav className="dashboard-nav">
                 <h1>Budget Tracker</h1>
+                <div className="welcome-message">Welcome, {user.name || 'User'}</div>
                 <button onClick={handleLogout}>Logout</button>
             </nav>
 
-            <div className="budget-section">
-                <h2>Monthly Budget</h2>
-                <div className="budget-form">
-                    <input
-                        type="number"
-                        value={budget.amount}
-                        onChange={(e) => setBudget({ ...budget, amount: e.target.value })}
-                        placeholder="Set monthly budget"
-                    />
-                    <input
-                        type="month"
-                        value={budget.month}
-                        onChange={(e) => setBudget({ ...budget, month: e.target.value })}
-                    />
-                    <button onClick={handleBudgetUpdate}>Set Budget</button>
-                </div>
-                <div className="budget-progress">
-                    <h3>Budget Progress</h3>
-                    <div className="progress-bar">
-                        <div
-                            className="progress"
-                            style={{
-                                width: `${Math.min((summary.expense / budget.amount) * 100, 100)}%`,
-                                backgroundColor: summary.expense > budget.amount ? '#ff4444' : '#4CAF50'
-                            }}
-                        ></div>
-                    </div>
-                    <p>Spent: ${summary.expense} of ${budget.amount}</p>
-                </div>
-            </div>
-
-            <div className="dashboard-summary">
-                <div className="summary-card">
-                    <h3>Income</h3>
-                    <p className="amount income">${summary.income}</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Expenses</h3>
-                    <p className="amount expense">${summary.expense}</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Balance</h3>
-                    <p className="amount">${summary.balance}</p>
-                </div>
-            </div>
-
-            <div className="dashboard-chart">
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={pieData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            fill="#8884d8"
-                        >
-                            {pieData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
-            </div>
-
-            <div className="transaction-form">
-                <h2>Add New Transaction</h2>
-                <form onSubmit={handleSubmit}>
-                    <select
-                        value={newTransaction.type}
-                        onChange={(e) => setNewTransaction({
-                            ...newTransaction,
-                            type: e.target.value,
-                            category: ''
-                        })}
-                    >
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                    </select>
-
-                    <select
-                        value={newTransaction.category}
-                        onChange={(e) => setNewTransaction({
-                            ...newTransaction,
-                            category: e.target.value
-                        })}
-                        required
-                    >
-                        <option value="">Select Category</option>
-                        {categories[newTransaction.type].map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                    </select>
-
-                    <input
-                        type="number"
-                        placeholder="Amount"
-                        value={newTransaction.amount}
-                        onChange={(e) => setNewTransaction({
-                            ...newTransaction,
-                            amount: e.target.value
-                        })}
-                        required
-                    />
-
-                    <input
-                        type="text"
-                        placeholder="Description"
-                        value={newTransaction.description}
-                        onChange={(e) => setNewTransaction({
-                            ...newTransaction,
-                            description: e.target.value
-                        })}
-                        required
-                    />
-
-                    <button type="submit">Add Transaction</button>
-                </form>
-            </div>
-
-            {/* Add filter controls before transactions list */}
-            <div className="transaction-filters">
-                <select
-                    value={filters.category}
-                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                >
-                    <option value="">All Categories</option>
-                    {[...categories.income, ...categories.expense].map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                </select>
-                <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                    placeholder="Start Date"
-                />
-                <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                    placeholder="End Date"
-                />
-                <div className="amount-filter">
-                    <input
-                        type="number"
-                        value={filters.minAmount}
-                        onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
-                        placeholder="Min Amount"
-                    />
-                    <span>to</span>
-                    <input
-                        type="number"
-                        value={filters.maxAmount}
-                        onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
-                        placeholder="Max Amount"
-                    />
-                </div>
-            </div>
-
-            <div className="transactions-list">
-                <h2>Recent Transactions</h2>
-                <div className="transactions-table">
-                    {currentTransactions.map(transaction => (
-                        <div key={transaction._id} className="transaction-item">
-                            <div className="transaction-info">
-                                <h4>{transaction.description}</h4>
-                                <p>{transaction.category}</p>
-                            </div>
-                            <div className="transaction-actions">
-                                <p className={`amount ${transaction.type}`}>
-                                    {transaction.type === 'expense' ? '-' : '+'}${transaction.amount}
-                                </p>
-                                <button
-                                    className="delete-btn"
-                                    onClick={() => handleDeleteTransaction(transaction._id)}
-                                >
-                                    Delete
-                                </button>
-                            </div>
+            <div className="dashboard-grid">
+                <div className="grid-item summary-section">
+                    <h2 className="section-title">Financial Overview</h2>
+                    <div className="dashboard-summary">
+                        <div className="summary-card">
+                            <h3>Income</h3>
+                            <p className="amount income">₹{summary.income}</p>
                         </div>
-                    ))}
+                        <div className="summary-card">
+                            <h3>Expenses</h3>
+                            <p className="amount expense">₹{summary.expense}</p>
+                        </div>
+                        <div className="summary-card">
+                            <h3>Balance</h3>
+                            <p className="amount">₹{summary.balance}</p>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Add pagination controls */}
-                {filteredTransactions.length > transactionsPerPage && (
-                    <div className="pagination">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                        >
-                            Previous
-                        </button>
+                <div className="grid-item chart-section">
 
-                        {Array.from({ length: Math.ceil(filteredTransactions.length / transactionsPerPage) }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={currentPage === i + 1 ? 'active' : ''}
+                    <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                            <Pie
+                                data={pieData}
+                                dataKey="value"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={60}
+                                innerRadius={40}
+                                fill="#8884d8"
                             >
-                                {i + 1}
-                            </button>
-                        ))}
+                                {pieData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Legend />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
 
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTransactions.length / transactionsPerPage)))}
-                            disabled={currentPage === Math.ceil(filteredTransactions.length / transactionsPerPage)}
-                        >
-                            Next
-                        </button>
+                <div className="grid-item budget-section">
+                    <h3>Monthly Budget</h3>
+                    <div className="budget-content">
+                        <div className="budget-form">
+                            <input
+                                type="number"
+                                value={budget.amount}
+                                onChange={(e) => setBudget({ ...budget, amount: e.target.value })}
+                                placeholder="Set monthly budget"
+                            />
+                            <input
+                                type="month"
+                                value={budget.month}
+                                onChange={(e) => setBudget({ ...budget, month: e.target.value })}
+                            />
+                            <button onClick={handleBudgetUpdate}>Set Budget</button>
+                        </div>
+                        <div className="budget-progress">
+                            <div className="progress-bar">
+                                <div
+                                    className="progress"
+                                    style={{
+                                        width: `${Math.min((summary.expense / budget.amount) * 100, 100)}%`,
+                                        backgroundColor: summary.expense > budget.amount ? '#ff4444' : '#4CAF50'
+                                    }}
+                                ></div>
+                            </div>
+                            <p>Spent: ₹{summary.expense} of ₹{budget.amount}</p>
+                        </div>
                     </div>
-                )}
+                </div>
+
+                <div className="grid-item transaction-section">
+                    <div className="transaction-header">
+                        <h3>Add Transaction</h3>
+                        <form onSubmit={handleSubmit} className="compact-form">
+                            <div className="form-row">
+                                <select
+                                    value={newTransaction.type}
+                                    onChange={(e) => setNewTransaction({ ...newTransaction, type: e.target.value, category: '' })}>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                                <select
+                                    value={newTransaction.category}
+                                    onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
+                                    required>
+                                    <option value="">Category</option>
+                                    {categories[newTransaction.type].map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-row">
+                                <input type="number" placeholder="Amount" value={newTransaction.amount}
+                                    onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })} required />
+                                <input type="text" placeholder="Description" value={newTransaction.description}
+                                    onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })} required />
+                                <button type="submit">Add</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <div className="transactions-container">
+                <div className="transactions-header">
+
+                    <div className="filter-section">
+                        <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })}>
+                            <option value="">All Categories</option>
+                            {[...categories.income, ...categories.expense].map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        <div className="date-filters">
+                            <input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
+                            <input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
+                        </div>
+                        <div className="amount-filters">
+                            <input type="number" placeholder="Min" value={filters.minAmount} onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })} />
+                            <input type="number" placeholder="Max" value={filters.maxAmount} onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })} />
+                        </div>
+                    </div>
+
+                    <div className="transactions-table">
+                        <div className="table-header">
+                            <div className="header-cell">Transaction Name</div>
+                            <div className="header-cell">Type</div>
+                            <div className="header-cell">Category</div>
+                            <div className="header-cell">Amount</div>
+                            <div className="header-cell">Date</div>
+                            <div className="header-cell">Action</div>
+                        </div>
+                        {currentTransactions.map(transaction => (
+                            <div key={transaction._id} className="table-row">
+                                <div className="table-cell" data-label="Transaction Name">{transaction.description}</div>
+                                <div className="table-cell" data-label="Type">{transaction.type}</div>
+                                <div className="table-cell" data-label="Category">{transaction.category}</div>
+                                <div className={`table-cell amount ${transaction.type}`} data-label="Amount" style={{ fontSize: "13px" }}>
+                                    {transaction.type === 'expense' ? '-' : '+'}₹{transaction.amount}
+                                </div>
+                                <div className="table-cell" data-label="Date">
+                                    {new Date(transaction.date).toLocaleDateString()}
+                                </div>
+                                <div className="table-cell" data-label="Action">
+                                    <button
+                                        className="delete-btn"
+                                        onClick={() => handleDeleteTransaction(transaction._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {filteredTransactions.length > transactionsPerPage && (
+                        <div className="pagination">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </button>
+                            {Array.from({ length: Math.ceil(filteredTransactions.length / transactionsPerPage) }, (_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                    className={currentPage === i + 1 ? 'active' : ''}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredTransactions.length / transactionsPerPage)))}
+                                disabled={currentPage === Math.ceil(filteredTransactions.length / transactionsPerPage)}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div >
     );
 };
 
 export default Dashboard;
+
+
