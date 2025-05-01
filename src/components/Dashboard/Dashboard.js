@@ -299,7 +299,7 @@ const Dashboard = () => {
                 </div>
 
                 <div className="grid-item chart-section">
-
+                {pieData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
                             <Pie
@@ -319,6 +319,12 @@ const Dashboard = () => {
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
+                     ) : (
+                        <div className="empty-state">
+                            <p>No financial data to display yet.</p>
+                            <p>Add your first transaction to see the chart !</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid-item budget-section">
@@ -387,6 +393,7 @@ const Dashboard = () => {
             </div>
 
             <div className="transactions-container">
+            {transactions.length > 0 ? (
                 <div className="transactions-header">
 
                     <div className="filter-section">
@@ -464,6 +471,18 @@ const Dashboard = () => {
                         </div>
                     )}
                 </div>
+                 ) : (
+                    <div className="empty-state">
+                        <h3>Welcome to Your Budget Tracker!</h3>
+                        <p>Get started by adding your first transaction above.</p>
+                        <ul className="getting-started-list">
+                            <li>Add income or expenses</li>
+                            <li>Set monthly budgets</li>
+                            <li>Track your spending</li>
+                            <li>View financial insights</li>
+                        </ul>
+                    </div>
+                )}
             </div>
         </div >
     );
