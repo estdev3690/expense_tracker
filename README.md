@@ -8,6 +8,8 @@
 - Transaction filtering and pagination
 - Responsive design for all devices
 - Real-time calculations and updates
+![Dashboard Overview](./public/expense.png)
+
 
 ## Technologies & Libraries Used
 
