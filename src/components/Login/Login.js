@@ -4,6 +4,7 @@ import './Login.css';
 const Login = () => {
     const [isSignUp, setIsSignUp] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [timer, setTimer] = useState(0);
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -31,7 +32,10 @@ const Login = () => {
         setError('');
         setSuccessMessage('');
         setIsLoading(true);
-    
+        setTimer(0);
+        const timerInterval = setInterval(() => {
+            setTimer(prev => prev + 1);
+        }, 1000); 
         try {
             const endpoint = isSignUp ? '/api/register' : '/api/login';
             const response = await fetch(`https://expense-tracker-4mo8.onrender.com${endpoint}`, {
@@ -45,13 +49,13 @@ const Login = () => {
                 }),
                 mode: 'cors'
             });
-    
+
             const data = await response.json();
-    
+
             if (!response.ok) {
                 throw new Error(data.message || 'An error occurred');
             }
-    
+
             if (isSignUp) {
                 setSuccessMessage('Registration successful! Please sign in.');
                 setTimeout(() => {
@@ -68,6 +72,8 @@ const Login = () => {
             setError(err.message || 'Failed to connect to server. Please try again later.');
         } finally {
             setIsLoading(false);
+        clearInterval(timerInterval);
+        setTimer(0);
         }
     };
 
@@ -113,18 +119,18 @@ const Login = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         className={`submit-btn ${isLoading ? 'loading' : ''}`}
                         disabled={isLoading}
                     >
-                        {isLoading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+                        {isLoading ? `Please wait... ${timer}s` : (isSignUp ? 'Sign Up' : 'Sign In')}
                     </button>
                 </form>
                 <p className="toggle-text">
                     {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                    <span onClick={!isLoading ? toggleForm : undefined} 
-                          className={`toggle-link ${isLoading ? 'disabled' : ''}`}>
+                    <span onClick={!isLoading ? toggleForm : undefined}
+                        className={`toggle-link ${isLoading ? 'disabled' : ''}`}>
                         {isSignUp ? ' Sign In' : ' Sign Up'}
                     </span>
                 </p>
