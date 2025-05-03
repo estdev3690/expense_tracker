@@ -4,7 +4,7 @@ import './Login.css';
 const Login = () => {
     const [isSignUp, setIsSignUp] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [timer, setTimer] = useState(0);
+    const [timer, setTimer] = useState(20); // Start from 20 seconds
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -27,15 +27,24 @@ const Login = () => {
         });
     };
 
+    // Update in handleSubmit function
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
         setIsLoading(true);
-        setTimer(0);
+        setTimer(20); // Reset to 20 seconds
+    
         const timerInterval = setInterval(() => {
-            setTimer(prev => prev + 1);
-        }, 1000); 
+            setTimer(prev => {
+                if (prev <= 0) {
+                    clearInterval(timerInterval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    
         try {
             const endpoint = isSignUp ? '/api/register' : '/api/login';
             const response = await fetch(`https://expense-tracker-4mo8.onrender.com${endpoint}`, {
@@ -72,8 +81,8 @@ const Login = () => {
             setError(err.message || 'Failed to connect to server. Please try again later.');
         } finally {
             setIsLoading(false);
-        clearInterval(timerInterval);
-        setTimer(0);
+            clearInterval(timerInterval);
+            setTimer(20); // Reset timer
         }
     };
 
