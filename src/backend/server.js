@@ -28,6 +28,10 @@ mongoose.connect(process.env.MONGODB_URI)
 app.get('/healthz', (req, res) => {
     res.status(200).send('OK');
 });
+app.get('/', (req, res) => {
+    res.send('Welcome to the Expense Tracker API');
+  });
+  
 app.post('/api/register', async (req, res) => {
     try {
         const { fullName, email, password } = req.body;
