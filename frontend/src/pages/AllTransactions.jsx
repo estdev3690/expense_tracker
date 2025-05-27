@@ -49,7 +49,7 @@ function AllTransactions() {
 
       const endpoint = type === "Income" ? "delete-income" : "delete-expense";
       const { data } = await axios.delete(
-        `http://localhost:4000/api/user/${endpoint}/${id}`,
+        `https://expense-tracker-1-kap5.onrender.com/api/user/${endpoint}/${id}`,
         {
           headers: {
             Authorization: `Bearer ${utoken}`,
@@ -90,7 +90,7 @@ function AllTransactions() {
       const endpoint = type === "Income" ? "update-income" : "update-expense";
 
       const { data } = await axios.put(
-        `http://localhost:4000/api/user/${endpoint}/${_id}`,
+        `https://expense-tracker-1-kap5.onrender.com/api/user/${endpoint}/${_id}`,
         {
           title,
           amount,
