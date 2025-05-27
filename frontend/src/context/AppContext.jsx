@@ -14,7 +14,7 @@ const AppContextProvider = ({ children }) => {
   const [incomeData, setIncomeData] = useState([]);
   const [token, setToken] = useState(Boolean(cookie.get("token")));
 
-  const backendUrl = "http://localhost:4000";
+  const backendUrl = "https://expense-tracker-1-kap5.onrender.com";
 
 
   const handleRegister = async (name,email,password) => {
