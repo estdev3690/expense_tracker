@@ -24,8 +24,8 @@ const register=async(req,res)=>{
 
         const token= jwt.sign({id:newUser._id,email:newUser.email},process.env.JWT_SECRET,{expiresIn:'7d'})
         res.cookie(token,{
-            httpOnly:false,
-            secure:false,
+            httpOnly:true,
+            secure:true,
             sameSite:'Lax',
             maxAge:7 * 24 * 60 * 60 * 1000
         })
@@ -66,8 +66,8 @@ const login=async(req,res)=>{
         const token=jwt.sign({id:user._id,email:user.email},process.env.JWT_SECRET,{expiresIn:'7d'})
 
         res.cookie(token,{
-            httpOnly:false,
-            secure:false,
+            httpOnly:true,
+            secure:true,
             sameSite:'Lax',
             maxAge:7 * 24 * 60 * 60 * 1000
         })
